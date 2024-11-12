@@ -1,0 +1,31 @@
+{
+  "name": "memefi",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "hatd",
+  "license": "ISC",
+  "dependencies": {
+    "@okxweb3/coin-sui": "^1.0.8",
+    "@stableproxy/puppeteer-page-proxy": "^2.3.2",
+    "csv-parser": "^3.0.0",
+    "csv-writer": "^1.6.0",
+    "dotenv": "^16.0.3",
+    "https-proxy-agent": "^7.0.4",
+    "jwt-decode": "^4.0.0",
+    "moment": "^2.30.1",
+    "node-fetch": "^2.6.7",
+    "node-schedule": "^2.1.1",
+    "p-limit": "^6.1.0",
+    "prompt-sync": "^4.2.0",
+    "puppeteer": "^22.6.1",
+    "socks-proxy-agent": "^8.0.2",
+    "sqlite3": "^5.1.7",
+    "web3": "^4.4.0",
+    "winston": "^3.13.1"
+  }
+}
