@@ -41,6 +41,10 @@ const ACTIONS = {
         code: 'get_list_task_ytb',
         name: 'Do task YTB'
     },
+    '10': {
+        code: '_login2',
+        name: 'Get Login'
+    },
 
     '99': {
         code: 'update_db',

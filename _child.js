@@ -222,13 +222,16 @@ class Account {
     }
 
     async _login() {
+        this.logger.info("Login")
         let need_login = true
+        this.logger.info(this.accountObject['token'])
         if (this.accountObject['token']) {
             const account_data = jwtDecode(this.accountObject['token'])
             if ((new Date(parseInt(account_data.exp) * 1000)) > (new Date())) {
                 need_login = false
             }
         }
+
 
         if (!need_login) return true
 
@@ -265,6 +268,7 @@ class Account {
             body,
             false
         )
+
         if (!login_response.data) {
             this.accountObject['message'] = "Login failed"
             this.accountObject['status'] = 1
@@ -873,106 +877,135 @@ class Account {
         }
     }
     //#region DoTask YTb
-    async verifi_task(task) {
-        const camp_MarkAsCompleted = await this._requestPuPostMemefi(
-            "https://api-gw-tg.memefi.club/graphql",
-            [
-                {
-                    "operationName": "CampaignTaskMarkAsCompleted",
-                    "variables": {
-                        "userTaskId": `${task.userTaskId}`,
-                        "verificationCode": task.code
-                    },
-                    "query": "fragment FragmentCampaignTask on CampaignTaskOutput {\n  id\n  name\n  description\n  status\n  type\n  position\n  buttonText\n  coinsRewardAmount\n  spinEnergyRewardAmount\n  link\n  userTaskId\n  isRequired\n  iconUrl\n  taskVerificationType\n  verificationAvailableAt\n  shouldUseVpn\n  isLinkInternal\n  quiz {\n    id\n    question\n    answers\n    __typename\n  }\n  __typename\n}\n\nmutation CampaignTaskMarkAsCompleted($userTaskId: String!, $verificationCode: String, $quizAnswers: [CampaignTaskQuizQuestionInput!]) {\n  campaignTaskMarkAsCompleted(\n    userTaskId: $userTaskId\n    verificationCode: $verificationCode\n    quizAnswers: $quizAnswers\n  ) {\n    ...FragmentCampaignTask\n    __typename\n  }\n}"
+    async verifi_task(task, index, sum) {
+        try {
+            const camp_MarkAsCompleted = await this._requestPuPostMemefi(
+                "https://api-gw-tg.memefi.club/graphql",
+                [
+                    {
+                        "operationName": "CampaignTaskMarkAsCompleted",
+                        "variables": {
+                            "userTaskId": `${task.userTaskId}`,
+                            "verificationCode": task.code
+                        },
+                        "query": "fragment FragmentCampaignTask on CampaignTaskOutput {\n  id\n  name\n  description\n  status\n  type\n  position\n  buttonText\n  coinsRewardAmount\n  spinEnergyRewardAmount\n  link\n  userTaskId\n  isRequired\n  iconUrl\n  taskVerificationType\n  verificationAvailableAt\n  shouldUseVpn\n  isLinkInternal\n  quiz {\n    id\n    question\n    answers\n    __typename\n  }\n  __typename\n}\n\nmutation CampaignTaskMarkAsCompleted($userTaskId: String!, $verificationCode: String, $quizAnswers: [CampaignTaskQuizQuestionInput!]) {\n  campaignTaskMarkAsCompleted(\n    userTaskId: $userTaskId\n    verificationCode: $verificationCode\n    quizAnswers: $quizAnswers\n  ) {\n    ...FragmentCampaignTask\n    __typename\n  }\n}"
+                    }
+                ]
+            )
+
+            if (camp_MarkAsCompleted) {
+                let content = `${index}/${sum}`
+                if (camp_MarkAsCompleted[0]?.data) {
+                    this.logger.info(`${camp_MarkAsCompleted[0].data?.campaignTaskMarkAsCompleted?.status}|${camp_MarkAsCompleted[0].data?.campaignTaskMarkAsCompleted?.coinsRewardAmount}|${camp_MarkAsCompleted[0].data?.campaignTaskMarkAsCompleted?.spinEnergyRewardAmount}`)
+                } else {
+                    this.logger.error(camp_MarkAsCompleted)
                 }
-            ]
-        )
-        if (camp_MarkAsCompleted) {
-            this.logger.info(`${camp_MarkAsCompleted[0].data?.campaignTaskMarkAsCompleted?.status}|${camp_MarkAsCompleted[0].data?.campaignTaskMarkAsCompleted?.id}|Nhận ${camp_MarkAsCompleted[0].data?.campaignTaskMarkAsCompleted?.coinsRewardAmount} Reward - ${camp_MarkAsCompleted[0].data?.campaignTaskMarkAsCompleted?.spinEnergyRewardAmount} Spin`)
+
+
+            }
+        } catch (error) {
+
         }
+
     }
 
     async do_task_ytb(task, code) {
-        await this._requestPuPostMemefi(
-            "https://api-gw-tg.memefi.club/graphql",
-            [
-                {
-                    "operationName": "CampaignTaskToVerification",
-                    "variables": {
-                        "taskConfigId": `${task.id}`
-                    },
-                    "query": "fragment FragmentCampaignTask on CampaignTaskOutput {\n  id\n  name\n  description\n  status\n  type\n  position\n  buttonText\n  coinsRewardAmount\n  spinEnergyRewardAmount\n  link\n  userTaskId\n  isRequired\n  iconUrl\n  taskVerificationType\n  verificationAvailableAt\n  shouldUseVpn\n  isLinkInternal\n  quiz {\n    id\n    question\n    answers\n    __typename\n  }\n  __typename\n}\n\nmutation CampaignTaskToVerification($taskConfigId: String!) {\n  campaignTaskMoveToVerificationV2(taskConfigId: $taskConfigId) {\n    ...FragmentCampaignTask\n    __typename\n  }\n}"
-                }
-            ]
-        );
+        try {
+            await this._requestPuPostMemefi(
+                "https://api-gw-tg.memefi.club/graphql",
+                [
+                    {
+                        "operationName": "CampaignTaskToVerification",
+                        "variables": {
+                            "taskConfigId": `${task.id}`
+                        },
+                        "query": "fragment FragmentCampaignTask on CampaignTaskOutput {\n  id\n  name\n  description\n  status\n  type\n  position\n  buttonText\n  coinsRewardAmount\n  spinEnergyRewardAmount\n  link\n  userTaskId\n  isRequired\n  iconUrl\n  taskVerificationType\n  verificationAvailableAt\n  shouldUseVpn\n  isLinkInternal\n  quiz {\n    id\n    question\n    answers\n    __typename\n  }\n  __typename\n}\n\nmutation CampaignTaskToVerification($taskConfigId: String!) {\n  campaignTaskMoveToVerificationV2(taskConfigId: $taskConfigId) {\n    ...FragmentCampaignTask\n    __typename\n  }\n}"
+                    }
+                ]
+            );
 
-        const camp_task_to_ver = await this._requestPuPostMemefi(
-            "https://api-gw-tg.memefi.club/graphql",
-            [
-                {
-                    "operationName": "GetTaskById",
-                    "variables": {
-                        "taskId": `${task.id}`
-                    },
-                    "query": "fragment FragmentCampaignTask on CampaignTaskOutput {\n  id\n  name\n  description\n  status\n  type\n  position\n  buttonText\n  coinsRewardAmount\n  spinEnergyRewardAmount\n  link\n  userTaskId\n  isRequired\n  iconUrl\n  taskVerificationType\n  verificationAvailableAt\n  shouldUseVpn\n  isLinkInternal\n  quiz {\n    id\n    question\n    answers\n    __typename\n  }\n  __typename\n}\n\nquery GetTaskById($taskId: String!) {\n  campaignTaskGetConfig(taskId: $taskId) {\n    ...FragmentCampaignTask\n    __typename\n  }\n}"
-                }
-            ]
-        );
-        this.logger.info(camp_task_to_ver[0].data?.campaignTaskGetConfig?.userTaskId)
-        if (camp_task_to_ver) {
-            return {
-                task: task,
-                userTaskId: camp_task_to_ver[0].data?.campaignTaskGetConfig?.userTaskId,
-                date_AvailableAt: camp_task_to_ver[0].data?.campaignTaskGetConfig?.verificationAvailableAt,
-                code: code
-            };
-        } else {
-            return null;
+            const camp_task_to_ver = await this._requestPuPostMemefi(
+                "https://api-gw-tg.memefi.club/graphql",
+                [
+                    {
+                        "operationName": "GetTaskById",
+                        "variables": {
+                            "taskId": `${task.id}`
+                        },
+                        "query": "fragment FragmentCampaignTask on CampaignTaskOutput {\n  id\n  name\n  description\n  status\n  type\n  position\n  buttonText\n  coinsRewardAmount\n  spinEnergyRewardAmount\n  link\n  userTaskId\n  isRequired\n  iconUrl\n  taskVerificationType\n  verificationAvailableAt\n  shouldUseVpn\n  isLinkInternal\n  quiz {\n    id\n    question\n    answers\n    __typename\n  }\n  __typename\n}\n\nquery GetTaskById($taskId: String!) {\n  campaignTaskGetConfig(taskId: $taskId) {\n    ...FragmentCampaignTask\n    __typename\n  }\n}"
+                    }
+                ]
+            );
+            this.logger.info(camp_task_to_ver[0].data?.campaignTaskGetConfig?.userTaskId)
+            if (camp_task_to_ver) {
+                return {
+                    task: task,
+                    userTaskId: camp_task_to_ver[0].data?.campaignTaskGetConfig?.userTaskId,
+                    date_AvailableAt: camp_task_to_ver[0].data?.campaignTaskGetConfig?.verificationAvailableAt,
+                    code: code
+                };
+            } else {
+                return null;
+            }
+        } catch (error) {
+
         }
+
 
 
     }
     async get_list_task_ytb() {
-        if (!(await this._login())) return;
-
-        const list_campaign_ytb_response = await this._requestPuPostMemefi(
-            "https://api-gw-tg.memefi.club/graphql",
-            [
-                {
-                    "operationName": "CampaignListsSpecialGrouped",
-                    "variables": {},
-                    "query": "fragment FragmentCampaign on CampaignOutput {\n  id\n  type\n  status\n  backgroundImageUrl\n  campaignUserParticipationId\n  completedTotalTasksAmount\n  description\n  endDate\n  iconUrl\n  isStarted\n  name\n  completionReward {\n    spinEnergyReward\n    coinsReward\n    claimedAt\n    id\n    __typename\n  }\n  totalRewardsPool\n  totalTasksAmount\n  collectedRewardsAmount\n  penaltyAmount\n  penaltySpinEnergyAmount\n  collectedSpinEnergyRewardsAmount\n  totalSpinEnergyRewardsPool\n  __typename\n}\n\nfragment FragmentSpecialCampaign on SpecialCampaignOutput {\n  id\n  backgroundImageUrl\n  campaignUserParticipationId\n  collectedRewardsAmount\n  collectedSpinEnergyRewardsAmount\n  completedTotalTasksAmount\n  description\n  endDate\n  iconUrl\n  isHot\n  isStarted\n  name\n  penaltyAmount\n  penaltySpinEnergyAmount\n  status\n  totalRewardsPool\n  totalSpinEnergyRewardsPool\n  totalTasksAmount\n  type\n  completionReward {\n    claimedAt\n    coinsReward\n    id\n    spinEnergyReward\n    __typename\n  }\n  __typename\n}\n\nquery CampaignListsSpecialGrouped {\n  campaignListsSpecialGrouped {\n    special {\n      ...FragmentSpecialCampaign\n      __typename\n    }\n    normal {\n      ...FragmentCampaign\n      __typename\n    }\n    archivedCount\n    __typename\n  }\n}"
-                },
-                {
-                    "operationName": "CampaignTasksSpecial",
-                    "variables": {},
-                    "query": "fragment FragmentCampaignTask on CampaignTaskOutput {\n  id\n  name\n  description\n  status\n  type\n  position\n  buttonText\n  coinsRewardAmount\n  spinEnergyRewardAmount\n  link\n  userTaskId\n  isRequired\n  iconUrl\n  taskVerificationType\n  verificationAvailableAt\n  shouldUseVpn\n  isLinkInternal\n  quiz {\n    id\n    question\n    answers\n    __typename\n  }\n  __typename\n}\n\nquery CampaignTasksSpecial {\n  campaignTasksSpecial {\n    ...FragmentCampaignTask\n    __typename\n  }\n}"
-                }
-            ]
-        );
-        if (list_campaign_ytb_response) {
-            const taskResults = await Promise.all(list_campaign_ytb_response[1]?.data?.campaignTasksSpecial.map((task) =>
-                limit(async () => {
+        try {
+            if (!(await this._get_game())) return false
+            const list_campaign_ytb_response = await this._requestPuPostMemefi(
+                "https://api-gw-tg.memefi.club/graphql",
+                [
+                    {
+                        "operationName": "CampaignListsSpecialGrouped",
+                        "variables": {},
+                        "query": "fragment FragmentCampaign on CampaignOutput {\n  id\n  type\n  status\n  backgroundImageUrl\n  campaignUserParticipationId\n  completedTotalTasksAmount\n  description\n  endDate\n  iconUrl\n  isStarted\n  name\n  completionReward {\n    spinEnergyReward\n    coinsReward\n    claimedAt\n    id\n    __typename\n  }\n  totalRewardsPool\n  totalTasksAmount\n  collectedRewardsAmount\n  penaltyAmount\n  penaltySpinEnergyAmount\n  collectedSpinEnergyRewardsAmount\n  totalSpinEnergyRewardsPool\n  __typename\n}\n\nfragment FragmentSpecialCampaign on SpecialCampaignOutput {\n  id\n  backgroundImageUrl\n  campaignUserParticipationId\n  collectedRewardsAmount\n  collectedSpinEnergyRewardsAmount\n  completedTotalTasksAmount\n  description\n  endDate\n  iconUrl\n  isHot\n  isStarted\n  name\n  penaltyAmount\n  penaltySpinEnergyAmount\n  status\n  totalRewardsPool\n  totalSpinEnergyRewardsPool\n  totalTasksAmount\n  type\n  completionReward {\n    claimedAt\n    coinsReward\n    id\n    spinEnergyReward\n    __typename\n  }\n  __typename\n}\n\nquery CampaignListsSpecialGrouped {\n  campaignListsSpecialGrouped {\n    special {\n      ...FragmentSpecialCampaign\n      __typename\n    }\n    normal {\n      ...FragmentCampaign\n      __typename\n    }\n    archivedCount\n    __typename\n  }\n}"
+                    },
+                    {
+                        "operationName": "CampaignTasksSpecial",
+                        "variables": {},
+                        "query": "fragment FragmentCampaignTask on CampaignTaskOutput {\n  id\n  name\n  description\n  status\n  type\n  position\n  buttonText\n  coinsRewardAmount\n  spinEnergyRewardAmount\n  link\n  userTaskId\n  isRequired\n  iconUrl\n  taskVerificationType\n  verificationAvailableAt\n  shouldUseVpn\n  isLinkInternal\n  quiz {\n    id\n    question\n    answers\n    __typename\n  }\n  __typename\n}\n\nquery CampaignTasksSpecial {\n  campaignTasksSpecial {\n    ...FragmentCampaignTask\n    __typename\n  }\n}"
+                    }
+                ]
+            );
+            if (list_campaign_ytb_response) {
+                let taskResults = [];
+                for await (var task of list_campaign_ytb_response[1]?.data?.campaignTasksSpecial) {
                     const data_task = await this.getAnswer(task.id);
                     if (data_task !== 0) {
-                        return this.do_task_ytb(task, data_task.code);
+
+                        let result = await this.do_task_ytb(task, data_task.code);
+                        taskResults.push(result);
                     }
-                    return null;
-                })
-            ));
-            const taskDataArray = taskResults.filter(result => result !== null);
-            for await (var task of taskDataArray) {
-                const date_verifi = new Date(task.date_AvailableAt);
-                const date_now = new Date().getTime();
-                const time_sleep = (date_verifi - date_now) > 0 ? (date_verifi - date_now) : 0;
-                await sleep(time_sleep + 2000);
-                await this.verifi_task(task)
+                }
+                const taskDataArray = taskResults.filter(result => result !== null);
+                let index = 0;
+                let sum = taskDataArray.length;
+                for await (var task of taskDataArray) {
+                    const date_verifi = new Date(task.date_AvailableAt);
+                    const date_now = new Date().getTime();
+                    const time_sleep = (date_verifi - date_now) > 0 ? (date_verifi - date_now) : 0;
+                    await sleep(time_sleep + 2000);
+                    await this.verifi_task(task, index, sum);
+                    index++;
+                }
+            } else {
+                this.logger.error("Get list campaign YTB failed")
+                this.logger.error(list_campaign_ytb_response)
+                return false
             }
-        } else {
-            this.logger.error("Get list campaign YTB failed")
-            this.logger.error(list_campaign_ytb_response)
-            return false
+
+        } catch (error) {
+            this.logger.error("Catch YTB")
+            this.logger.error(error)
+        } finally {
+            // await this._update_account_object(this.account)
         }
+
     }
     async getAnswer(task_id) {
 
@@ -1044,6 +1077,34 @@ class Account {
             await update_account(this.accountObject)
         }
     }
+
+    //#region GetIframe
+    async getIframe() {
+        try {
+            const iframe_url = await getIframeUrl(
+                this.account.tele_app_id,
+                this.account.tele_app_hash,
+                this.account.tele_session,
+                this.account.sock_proxy_url,
+                this.logger,
+            )
+            if (iframe_url) {
+                this.logger.info("Login tele success")
+                this.account.tele_data = iframe_url
+                const web_app_data = Object.fromEntries(new URLSearchParams(this.account.tele_data.replace(/.*tgWebAppData/, 'tgWebAppData')))
+                this.accountObject['tele_data'] = web_app_data.tgWebAppData
+                this.logger.info(web_app_data.tgWebAppData)
+            }
+            return false
+        } catch (e) {
+            this.logger.error("Catch get iframe")
+            this.logger.error(e.message)
+            return false
+        } finally {
+            await update_account(this.accountObject)
+        }
+    }
+    //#endregion
 }
 
 let BROWSER, PAGE, PAGE2, EXTENSION_ID
